@@ -10,6 +10,11 @@ class SetTasks extends StatelessWidget {
   final TextEditingController _taskNameController = TextEditingController();
   final TextEditingController _taskDurationController = TextEditingController();
 
+  dispose() {
+    _taskNameController.dispose();
+    _taskDurationController.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -33,13 +38,14 @@ class SetTasks extends StatelessWidget {
             const SizedBox(height: 10),
             ElevatedButton(
               onPressed: () {
-                final taskName = _taskNameController.text;
+                final taskName = int.tryParse(_taskNameController.text) ?? 0;
+                ;
                 final taskDuration =
                     int.tryParse(_taskDurationController.text) ?? 0;
-                if (taskName.isNotEmpty && taskDuration > 0) {
+                if (taskName > 0 && taskDuration > 0) {
                   final task = Task(
                     id: const Uuid().v4(),
-                    title: taskName,
+                    taskCount: taskName,
                     duration: taskDuration * 60, // convert minutes to seconds
                     endTime:
                         DateTime.now().add(Duration(minutes: taskDuration)),

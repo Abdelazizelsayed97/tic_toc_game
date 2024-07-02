@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:tic_tac_toe_game_second_clone/core/helpers/spacer.dart';
 
 class ShowDialog {
-  static void handleWhoWins(String mark, BuildContext context) {
+  static void handleWhoWins({required String mark, required BuildContext context, }) {
     String message;
     Color color;
 

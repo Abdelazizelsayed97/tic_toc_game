@@ -1,35 +1,33 @@
 class Task {
   final String id;
-  final String title;
+  final int taskCount;
   final DateTime endTime;
-  final int duration; // Duration in seconds
+  final int duration;
+  final int remainingTime;
   final bool isCompleted;
-  final int remainingTime; // Remaining time in seconds
 
   Task({
+    this.isCompleted = false,
     required this.id,
-    required this.title,
+    required this.taskCount,
     required this.endTime,
     required this.duration,
-    this.isCompleted = false,
     this.remainingTime = 0,
   });
 
-  Task copyWith({
-    String? id,
-    String? title,
-    DateTime? endTime,
-    int? duration,
-    bool? isCompleted,
-    int? remainingTime,
-  }) {
+  Task copyWith(
+      {int? taskCount,
+      DateTime? endTime,
+      int? duration,
+      int? remainingTime,
+      bool? isCompleted}) {
     return Task(
-      id: id ?? this.id,
-      title: title ?? this.title,
+      id: id,
+      taskCount: taskCount ?? this.taskCount,
       endTime: endTime ?? this.endTime,
       duration: duration ?? this.duration,
-      isCompleted: isCompleted ?? this.isCompleted,
       remainingTime: remainingTime ?? this.remainingTime,
+      isCompleted: isCompleted ?? this.isCompleted,
     );
   }
 }

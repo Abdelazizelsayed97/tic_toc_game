@@ -1,4 +1,6 @@
-import 'package:bloc/bloc.dart';
+import 'dart:async';
+
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'game_state.dart';
 
@@ -28,7 +30,6 @@ class TicTacToeCubit extends Cubit<GameState> {
         _currentPlayer = _currentPlayer == 'X' ? 'O' : 'X';
         emit(GameState(board: newBoard));
         if (_currentPlayer == 'O') {
-          Future.delayed(Duration(milliseconds: 800));
           _botMove();
         }
       }
@@ -37,24 +38,28 @@ class TicTacToeCubit extends Cubit<GameState> {
 
   void _botMove() {
     final newBoard = state.board.map((row) => row.toList()).toList();
-    for (int i = 0; i < 3; i++) {
-      for (int j = 0; j < 3; j++) {
-        if (newBoard[i][j].isEmpty) {
-          newBoard[i][j] = 'O';
-          if (_checkWinner(newBoard, 'O')) {
-            emit(GameState(board: newBoard, winner: 'O'));
-          } else if (newBoard
-              .every((row) => row.every((cell) => cell.isNotEmpty))) {
-            emit(GameState(board: newBoard, isDraw: true));
-          } else {
-            _currentPlayer = 'X';
-            emit(GameState(board: newBoard));
+    Timer(
+      const Duration(milliseconds: 800),
+      () {
+        for (int i = 0; i < 3; i++) {
+          for (int j = 0; j < 3; j++) {
+            if (newBoard[i][j].isEmpty) {
+              newBoard[i][j] = 'O';
+              if (_checkWinner(newBoard, 'O')) {
+                emit(GameState(board: newBoard, winner: 'O'));
+              } else if (newBoard
+                  .every((row) => row.every((cell) => cell.isNotEmpty))) {
+                emit(GameState(board: newBoard, isDraw: true));
+              } else {
+                _currentPlayer = 'X';
+                emit(GameState(board: newBoard));
+              }
+              return;
+            }
           }
-          Future.delayed(Duration(milliseconds: 800));
-          return;
         }
-      }
-    }
+      },
+    );
   }
 
   bool _checkWinner(List<List<String>> board, String player) {

@@ -16,11 +16,30 @@ class AssignedTasks extends StatelessWidget {
         if (state is TaskLoaded && state.assignedTasks.isNotEmpty) {
           return Column(
             children: [
-              TaskWidget(title: 'Assigned Tasks', tasks: state.assignedTasks),
+              BlocListener<TaskBloc, TaskState>(
+                listener: (context, state) {
+                  if (state is TaskLoaded) {
+                    if (state.assignedTasks
+                        .map(
+                          (e) => e,
+                        )
+                        .isNotEmpty) {
+                      context
+                          .read<TaskBloc>()
+                          .add(UpdateTask(state.assignedTasks.first));
+                    }
+                    // print('added unassigned tasks : ${state.unassignedTasks.map(
+                    //       (e) => e.taskCount,
+                    // ).toList()}');
+                  }
+                },
+                child: TaskWidget(
+                    title: 'Assigned Tasks', tasks: state.assignedTasks),
+              ),
               verticalSpace(50),
               TicTacToeGame(
-                onGameEnd: (String) {
-                  if (String == "X") {
+                onGameEnd: (x) {
+                  if (x == "X") {
                     context
                         .read<TaskBloc>()
                         .add(CompleteTask(state.assignedTasks.first.id));
@@ -31,7 +50,7 @@ class AssignedTasks extends StatelessWidget {
             ],
           );
         } else {
-          return Center(child: Text("You didn't assigned a task"));
+          return const Center(child: Text("You didn't assigned a task"));
         }
       },
     );

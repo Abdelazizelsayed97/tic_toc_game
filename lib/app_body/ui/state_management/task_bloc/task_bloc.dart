@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:meta/meta.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../domain/entity/task_entity.dart';
 
@@ -22,8 +22,8 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
     _startTimer();
   }
 
-  final List<Task> _unassignedTasks = [];
-  final List<Task> _assignedTasks = [];
+  final List<Task> _unassignedTasksList = [];
+  final List<Task> _assignedTasksList = [];
   final List<Task> _completedTasks = [];
 
   void _startTimer() {
@@ -33,41 +33,53 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
   }
 
   void _onAddTask(AddTask event, Emitter<TaskState> emit) {
-    _unassignedTasks.add(event.task);
+    for (int i = 0; i < event.task.taskCount; i++) {
+      _unassignedTasksList.add(
+        event.task.copyWith(duration: event.task.duration * i),
+      );
+    }
     emit(_buildTaskLoadedState());
   }
 
   void _onAssignTask(AssignTask event, Emitter<TaskState> emit) {
     final taskIndex =
-        _unassignedTasks.indexWhere((task) => task.id == event.taskId);
+        _unassignedTasksList.indexWhere((task) => task.id == event.taskId);
     if (taskIndex != -1) {
-      final task = _unassignedTasks.removeAt(taskIndex);
-      _assignedTasks.add(task);
+      _assignedTasksList.add(_unassignedTasksList[taskIndex]);
+      _unassignedTasksList.removeAt(taskIndex);
       emit(_buildTaskLoadedState());
     }
   }
 
   void _onCompleteTask(CompleteTask event, Emitter<TaskState> emit) {
     final taskIndex =
-        _assignedTasks.indexWhere((task) => task.id == event.taskId);
+        _assignedTasksList.indexWhere((task) => task.id == event.taskId);
     if (taskIndex != -1) {
-      final task = _assignedTasks.removeAt(taskIndex);
+      final task = _assignedTasksList.removeAt(taskIndex);
       _completedTasks.add(task.copyWith(isCompleted: true));
       emit(_buildTaskLoadedState());
     }
   }
 
+  final List<UpdateTask> newList = [];
+
   void _onUpdateTask(UpdateTask event, Emitter<TaskState> emit) {
-    final taskIndex =
-        _unassignedTasks.indexWhere((task) => task.id == event.task.id);
+    final taskIndex = _unassignedTasksList.indexWhere((task) {
+      return task.id == event.task.id;
+    });
     if (taskIndex != -1) {
-      _unassignedTasks[taskIndex] = event.task;
+      print(
+          'if================================================================');
+      _unassignedTasksList[taskIndex] = event.task;
+      print('after:${_unassignedTasksList.map(
+            (e) => e.taskCount,
+          ).toList()}');
       emit(_buildTaskLoadedState());
     }
   }
 
   void _onRemoveTask(RemoveTask event, Emitter<TaskState> emit) {
-    _unassignedTasks.removeWhere((task) => task.id == event.taskId);
+    _unassignedTasksList.removeWhere((task) => task.id == event.taskId);
     emit(_buildTaskLoadedState());
   }
 
@@ -85,24 +97,27 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
     final now = DateTime.now();
 
     final expiredAssignedTasks =
-        _assignedTasks.where((task) => task.endTime.isBefore(now)).toList();
+        _assignedTasksList.where((task) => task.endTime.isBefore(now)).toList();
 
-    final expiredUnassignedTasks =
-        _unassignedTasks.where((task) => task.endTime.isBefore(now)).toList();
+    final expiredUnassignedTasks = _unassignedTasksList
+        .where((task) => task.endTime.isBefore(now))
+        .toList();
 
     for (var task in expiredAssignedTasks) {
-      _assignedTasks.remove(task);
-      _unassignedTasks.add(task.copyWith(
-          endTime: DateTime.now().add(Duration(seconds: task.duration + 1))));
+      _assignedTasksList.remove(task);
+      _unassignedTasksList.add(task.copyWith(
+          endTime: DateTime.now()
+              .add(Duration(seconds: task.duration + task.duration))));
     }
 
     for (var task in expiredUnassignedTasks) {
-      _unassignedTasks.remove(task);
+      _unassignedTasksList.remove(task);
     }
 
-    final updatedAssignedTasks = _assignedTasks.map((task) {
+    final updatedAssignedTasksTimeOut = _assignedTasksList.map((task) {
       final remainingTime = task.endTime.difference(now).inSeconds;
       if (remainingTime <= 0) {
+        _unassignedTasksList.add(task.copyWith(remainingTime: task.duration));
         return task.copyWith(
           remainingTime: 0,
           endTime: DateTime.now().add(Duration(seconds: task.duration)),
@@ -112,7 +127,7 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
       }
     }).toList();
 
-    final updatedUnassignedTasks = _unassignedTasks.map((task) {
+    final updatedUnassignedTasksTimeOut = _unassignedTasksList.map((task) {
       final remainingTime = task.endTime.difference(now).inSeconds;
       if (remainingTime <= 0) {
         return task.copyWith(remainingTime: 0);
@@ -121,21 +136,23 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
       }
     }).toList();
 
-    _assignedTasks
+    _assignedTasksList
       ..clear()
-      ..addAll(updatedAssignedTasks.where((task) => task.remainingTime > 0));
+      ..addAll(
+          updatedAssignedTasksTimeOut.where((task) => task.remainingTime > 0));
 
-    _unassignedTasks
+    _unassignedTasksList
       ..clear()
-      ..addAll(updatedUnassignedTasks.where((task) => task.remainingTime > 0));
+      ..addAll(updatedUnassignedTasksTimeOut
+          .where((task) => task.remainingTime > 0));
 
     emit(_buildTaskLoadedState());
   }
 
   TaskState _buildTaskLoadedState() {
     return TaskLoaded(
-      unassignedTasks: List.from(_unassignedTasks),
-      assignedTasks: List.from(_assignedTasks),
+      unassignedTasks: List.from(_unassignedTasksList),
+      assignedTasks: List.from(_assignedTasksList),
       completedTasks: List.from(_completedTasks),
     );
   }

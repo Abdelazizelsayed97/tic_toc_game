@@ -6,11 +6,25 @@ import 'app_body/ui/pages/create_tasks_page.dart';
 import 'app_body/ui/state_management/task_bloc/task_bloc.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  MyApp({super.key});
+
+  final _theme = ThemeData(
+    dialogBackgroundColor: Colors.transparent,
+    primaryColor: Colors.green,
+    scaffoldBackgroundColor: Colors.white,
+    primaryTextTheme: TextTheme(
+      bodyLarge: TextStyle(color: Colors.black),
+      bodyMedium: TextStyle(color: Colors.black),
+    ),
+    textTheme: TextTheme(
+      bodyLarge: TextStyle(color: Colors.black),
+      bodyMedium: TextStyle(color: Colors.black),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -19,8 +33,9 @@ class MyApp extends StatelessWidget {
       child: BlocProvider(
         create: (context) => TaskBloc(),
         child: MaterialApp(
+          theme: _theme,
           debugShowCheckedModeBanner: false,
-          home: SetTasks(),
+          home: SetTasksPage(),
         ),
       ),
     );

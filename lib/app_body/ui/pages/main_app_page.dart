@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tic_tac_toe_game_second_clone/app_body/domain/entity/task_entity.dart';
 import 'package:tic_tac_toe_game_second_clone/core/helpers/app_daimentions.dart';
 import 'package:tic_tac_toe_game_second_clone/core/helpers/spacer.dart';
 import 'package:tic_tac_toe_game_second_clone/core/text_styles/text_styles.dart';
 
+import '../state_management/task_bloc/task_bloc.dart';
 import '../widgets/tabs/assigned_task_tab.dart';
 import '../widgets/tabs/completed_task_tab.dart';
 import '../widgets/tab_bar_widget.dart';
@@ -29,6 +31,7 @@ class _TaskPageState extends State<TaskPage>
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios),
             onPressed: () {
+              context.read<TaskBloc>().add(RemoveAllTask());
               Navigator.of(context).pop();
             },
           ),

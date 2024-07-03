@@ -52,5 +52,9 @@ class RemoveTask extends TaskEvent {
   @override
   List<Object?> get props => [taskId];
 }
+class RemoveAllTask extends TaskEvent {
+  @override
+  List<Object?> get props => [];
+}
 
 class CheckTaskTimers extends TaskEvent {}

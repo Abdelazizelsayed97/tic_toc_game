@@ -15,6 +15,7 @@ class AppTextField extends StatefulWidget {
     this.onChanged,
     this.maxLines,
     this.focusNode,
+    this.maxLength,
   });
 
   final TextEditingController controller;
@@ -26,6 +27,7 @@ class AppTextField extends StatefulWidget {
   final String? Function(String?)? validator;
   final void Function(String)? onChanged;
   final int? maxLines;
+  final int? maxLength;
   final FocusNode? focusNode;
 
   @override
@@ -60,6 +62,8 @@ class _AppTextFieldState extends State<AppTextField> {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      maxLength: widget.maxLength,
+      keyboardType: TextInputType.number,
       validator: (value) {
         if (widget.validator != null) {
           final validationError = widget.validator!(value);
@@ -77,7 +81,12 @@ class _AppTextFieldState extends State<AppTextField> {
       controller: widget.controller,
       obscureText: widget.opsCureText ?? false,
       maxLines: widget.maxLines,
-      inputFormatters: [NoLettersFormatter()],
+      inputFormatters: [
+        FilteringTextInputFormatter.allow(RegExp(r'[Z0-9 ]')),
+        FilteringTextInputFormatter.deny(
+          RegExp(r'[ 0]'),
+        ),
+      ],
       focusNode: focusNode,
       decoration: InputDecoration(
         focusedErrorBorder: OutlineInputBorder(
@@ -114,27 +123,6 @@ class _AppTextFieldState extends State<AppTextField> {
           height: 0,
         ),
         prefixIconColor: const Color(0xff4051ad29),
-      ),
-    );
-  }
-}
-
-class NoLettersFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
-    final newText = newValue.text;
-    final filteredText = newText.replaceAll(RegExp(r'[a-zA-Z]'), '');
-
-    if (newText != filteredText || newValue.text.startsWith(' ')||newValue.text.startsWith("0")) {
-      return oldValue;
-    }
-
-    return newValue.copyWith(
-      text: filteredText,
-      selection: newValue.selection.copyWith(
-        baseOffset: filteredText.length,
-        extentOffset: filteredText.length,
       ),
     );
   }

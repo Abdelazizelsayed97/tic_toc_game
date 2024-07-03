@@ -8,10 +8,10 @@ class CompletedTasks extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<TaskBloc, TaskState>(
       builder: (context, state) {
-        if (state is TaskLoaded) {
+        if (state is TaskLoaded && state.completedTasks.isNotEmpty) {
           return TaskWidget(title: 'Completed Tasks', tasks: state.completedTasks);
         } else {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: Text("No data"));
         }
       },
     );

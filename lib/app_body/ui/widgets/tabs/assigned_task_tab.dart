@@ -19,18 +19,17 @@ class AssignedTasks extends StatelessWidget {
               BlocListener<TaskBloc, TaskState>(
                 listener: (context, state) {
                   if (state is TaskLoaded) {
-                    if (state.assignedTasks
-                        .map(
-                          (e) => e,
-                        )
-                        .isNotEmpty) {
+                    final remainingTime = state.assignedTasks
+                        .map((e) => e.remainingTime)
+                        .toList();
+                    if (remainingTime.contains(1)) {
+                      final taskWithZeroTime = state.assignedTasks
+                          .firstWhere((task) => task.remainingTime == 1);
+
                       context
                           .read<TaskBloc>()
-                          .add(UpdateTask(state.assignedTasks.first));
+                          .add(UpdateTask(taskWithZeroTime));
                     }
-                    // print('added unassigned tasks : ${state.unassignedTasks.map(
-                    //       (e) => e.taskCount,
-                    // ).toList()}');
                   }
                 },
                 child: TaskWidget(

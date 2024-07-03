@@ -26,7 +26,7 @@ class _TaskWidgetState extends State<TaskWidget> {
     super.initState();
   }
 
-  String _formatDuration(Duration duration) {
+  String formatDuration(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     final minutes = twoDigits(duration.inMinutes.remainder(60));
     final seconds = twoDigits(duration.inSeconds.remainder(60));
@@ -35,31 +35,35 @@ class _TaskWidgetState extends State<TaskWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        verticalSpace(10),
-        ...widget.tasks.map((task) {
-          final remainingDuration = task.endTime.difference(DateTime.now());
-          return BlocBuilder<TaskBloc, TaskState>(
-            builder: (context, state) {
-              return Card(
-                child: ListTile(
-                  title: Text("Task no. ${task.taskCount}"),
-                  trailing: Text(_formatDuration(remainingDuration)),
-                  onTap: () {
-                    if (widget.title == 'Unassigned Tasks') {
-                      ShowDialog.handleWhoWins(
-                          mark: 'you have assigned a task', context: context);
-                      context.read<TaskBloc>().add(AssignTask(task.id));
-                      DefaultTabController.of(context).animateTo(1);
-                    }
-                  },
-                ),
-              );
-            },
-          );
-        }),
-      ],
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          verticalSpace(10),
+          ...widget.tasks.map((task) {
+            final remainingDuration = task.endTime.difference(DateTime.now());
+            return BlocBuilder<TaskBloc, TaskState>(
+              builder: (context, state) {
+                return Card(
+                  child: ListTile(
+                    title: Text("Task  ${task.taskCount}"),
+                    trailing: Text(formatDuration(remainingDuration)),
+                    onTap: () {
+                      final newState = state as TaskLoaded;
+                      if (widget.title == 'Unassigned Tasks' &&
+                          newState.assignedTasks.isEmpty) {
+                        ShowDialog.handleWhoWins(
+                            mark: 'you have assigned a task', context: context);
+                        context.read<TaskBloc>().add(AssignTask(task.id));
+                        DefaultTabController.of(context).animateTo(1);
+                      }
+                    },
+                  ),
+                );
+              },
+            );
+          }),
+        ],
+      ),
     );
   }
 }
